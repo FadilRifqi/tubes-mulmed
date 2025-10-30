@@ -177,7 +177,7 @@ while running:
 
         # spawn set pagar (2 sprite per set), masing-masing pilih varian acak
         sprite_spawn_timer += dt
-        if sprite_spawn_timer > 2500:  # tiap ~0.9 detik
+        if sprite_spawn_timer > 4000:  # tiap ~0.9 detik
             imgs_for_set = [random.choice(PAGAR_VARIANTS) for _ in range(2)]
             # jika salah satu atau kedua yang terpilih adalah pagar2_img -> tampilkan hanya pagar2 saja (single)
             if pagar2_img is not None and (imgs_for_set[0] is pagar2_img or imgs_for_set[1] is pagar2_img):
@@ -232,6 +232,7 @@ while running:
                     elif not s["hit_prev"][0]:
                         # bounce sekali pada saat mulai kontak
                         camera_follow_on_bounce(BOUNCE_PX)
+                        sprite_spawn_timer -= 900
 
                 # gambar depan hanya jika allowed (atau sudah terkunci)
                 ((front_draw if (s["locks"][0] or (collides and required_ok)) else back_draw)
@@ -270,6 +271,7 @@ while running:
                                 s["locks"][1] = True  # kunci agar selalu di depan
                             elif not s["hit_prev"][1]:
                                 camera_follow_on_bounce(BOUNCE_PX)
+                                sprite_spawn_timer -= 900
 
                         draw_front = s["locks"][1] or (collides and required_ok)
                         (front_draw if draw_front else back_draw).append((img, r))
