@@ -1,4 +1,4 @@
-<div style="text-align: center"> 
+<div style="text-align: center">
 <h1>Tugas Besar Multimedia</h1>
 </div>
 <h3>Anggota Kelompok</h3>
@@ -7,7 +7,48 @@
 <li>Jason Surya Padantya - 122140237</li>
 </ul>
 <h3> Deskripsi </h3>
-<p style="text-align: justify">Sapi Go adalah sebuah permainan dimana kau bisa mengontrol karakter sapi untuk melewai rintangan dengan mengunakan suara. Pemain akan menggunakan pitch suaranya untuk mengontrol apakah sapi akan menunduk atau meramping. Game akan dibuat dalam 2d mnggunakan pygame.</p>
+<p style="text-align: justify">Sapi Go adalah sebuah permainan dimana kamu bisa mengontrol karakter sapi untuk melewati rintangan dengan mengunakan suara. Pemain akan menggunakan pitch suaranya untuk mengontrol apakah sapi akan menunduk atau meramping. Game akan dibuat dalam 2d mnggunakan pygame.</p>
 <h3> Logbook </h3>
 <h4>Minggu Pertama</h4>
-<p> </p>
+<p>
+Membuat prototype game, di prototype ini game sudah bisa melewati obstacle dengan menggunakan key x dan z
+</p>
+<h4>Minggu Kedua</h4>
+<p>
+Mencoba mengintegrasikan deteksi pitch suara untuk menggantikan tombol x dan z sebagai input
+</p>
+<h4>Minggu ketiga</h4>
+<p>
+Berhasil mengubah input menjadi suara, membuat arsitektur lebih modular seperti object Pagar, Audio
+</p>
+
+<h3> Installation </h3>
+<ul>
+<li>
+(optional) gunakan venv atau python environment manager lainnya
+contoh pakai venv
+
+```python
+python -m venv .venv
+
+source .venv/Scripts/activate (untuk windows)
+source .venv/bin/activate (untuk macos dan linux)
+```
+
+</li>
+<li>
+install dependencies
+
+```python
+pip install requirements.txt
+```
+
+</li>
+<li>
+Jalankan program
+
+```python
+python main.py
+```
+
+</li>
