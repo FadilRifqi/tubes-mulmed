@@ -110,8 +110,7 @@ class Sapi(pygame.sprite.Sprite):
         # Gambar sprite visual di tengah rect hitbox
         draw_x = self.rect.centerx - (self.image.get_width() // 2)
 
-        # --- ATUR VISUAL OFFSET DI SINI ---
-        visual_offset_y = 170 # Ubah angka ini. (+) Turun, (-) Naik
+        visual_offset_y = 170
 
         draw_y = (self.rect.bottom - self.image.get_height()) + visual_offset_y
 

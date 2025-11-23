@@ -3,7 +3,7 @@ import pygame
 import random
 from typing import List, Tuple, Dict, Any
 
-# Sesuaikan Image Scale
+# Scale Pagar
 SCALE_X = 4
 SCALE_Y = 1.0
 
