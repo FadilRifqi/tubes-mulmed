@@ -37,7 +37,7 @@ class Pagar:
             hb[pagar_img] = {"shrink": (shrink_x, 12), "offset": (-90, -8)}
         if pagar2_img is not None:
             shrink_x = int(pagar2_img.get_width() * 0.75)
-            hb[pagar2_img] = {"shrink": (shrink_x, 16), "offset": (-20, -10)}
+            hb[pagar2_img] = {"shrink": (shrink_x, 16), "offset": (-10, -10)}
         return hb
 
 class ObstacleSet:
@@ -96,7 +96,8 @@ class ObstacleManager:
         z_down: bool,
         x_down: bool,
         camera_follow_cb,
-        debug_hitbox: bool
+        debug_hitbox: bool,
+        screen: pygame.Surface,
     ) -> Tuple[bool, bool, List[Tuple[pygame.Surface, pygame.Rect]], List[Tuple[pygame.Surface, pygame.Rect]], List[Tuple[Tuple[int,int,int], pygame.Rect]]]:
         self.sprite_spawn_timer += dt
         self.spawn_if_ready()
@@ -130,7 +131,7 @@ class ObstacleManager:
                         self.sprite_spawn_timer -= 900
                 (front_draw if (s.locks[0] or (collides and required_ok)) else back_draw).append((img, r))
                 if debug_hitbox:
-                    debug_boxes.append(((255,0,255), c))
+                    pygame.draw.rect(screen, (255, 0, 255), c, 2)
                 s.hit_prev[0] = collides
             else:
                 for i,(dx,dy) in enumerate(self.offsets):
@@ -158,7 +159,7 @@ class ObstacleManager:
                         draw_front = s.locks[1] or (collides and required_ok)
                         (front_draw if draw_front else back_draw).append((img,r))
                         if debug_hitbox:
-                            debug_boxes.append(((255,0,255), c))
+                            pygame.draw.rect(screen, (255, 0, 255), c, 2)
                         s.hit_prev[1] = collides
 
             # hapus jika di luar layar kiri

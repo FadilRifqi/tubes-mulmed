@@ -5,15 +5,22 @@ import numpy as np
 import cv2
 from audio import Audio
 
+# Import class Sapi yang baru
+from sapi import Sapi
+from pagar import Pagar, ObstacleManager
+import environment
 
 audio = Audio()
 audio.start()
 
-# asset path
+# --- ASSET PATH DIUPDATE ---
+# Pastikan 3 file ini ada di folder assets Anda
+walk_path = os.path.join(os.getcwd(), 'assets', 'walk.png')
+walk_low_path = os.path.join(os.getcwd(), 'assets', 'walk_low.png')
+walk_high_path = os.path.join(os.getcwd(), 'assets', 'walk_high.png')
+
 pagar_1_image_path = os.path.join(os.getcwd(), 'assets', 'pagar.png')
 pagar_2_image_path = os.path.join(os.getcwd(), 'assets', 'pagar_2.png')
-# TODO: ganti player dengan gambar sapi
-sapi_path = os.path.join(os.getcwd(), 'assets', 'sapi.png')
 
 # pygame init
 pygame.init()
@@ -25,52 +32,49 @@ pygame.display.set_caption("Sapi Go")
 font = pygame.font.SysFont("consolas", 28)
 clock = pygame.time.Clock()
 
-from pagar import Pagar, ObstacleManager
-import environment
-
-# buat object
+# buat object pagar
 pagar_1 = Pagar(pagar_1_image_path)
 pagar_2 = Pagar(pagar_2_image_path)
 
-# Setup video capture untuk latar belakang game
+# Setup video capture
 cam = cv2.VideoCapture(0)
 if not cam.isOpened():
     print("Gagal membuka webcam. Pastikan kamera terhubung.")
+
+# Set resolusi kamera
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
 # offset dan speed kamera
 offset_x = 0.0
 speed_x = -10
 
-# definisi gambar dan rect
+# definisi gambar dan rect pagar
 pagar_img = pagar_1.get_image()
-pagar_rect = pagar_img.get_rect()
-
 pagar2_img = pagar_2.get_image()
-pagar2_rect = pagar2_img.get_rect()
-
-# varian pagar
 PAGAR_VARIANTS = [img for img in (pagar_img, pagar2_img) if img is not None]
-
-# hitbox pagar
 HB_FOR_IMG = Pagar.build_hitbox_config(pagar_img, pagar2_img)
 
-
-# Kecepatan dan offset sprite pagar
+# Konfigurasi Obstacle
 SPRITE_SPEED = 3
 SPRITE_SET_OFFSETS = [(20, 20), (170, 40)]
-
-# Player dan debug hitbox
-PLAYER_W, PLAYER_H = 26, 58
-PLAYER_X = 130
-DEBUG_HITBOX = True
-
-# Bounce tuning
 BOUNCE_PX = 200
 
-# TODO: Ganti player dengan gambar sapi
-player_rect = pygame.Rect(0, 0, PLAYER_W, PLAYER_H)
+# --- SETUP PLAYER (SAPI) ---
+SAPI_SIZE = (320, 320)
+PLAYER_X = 130
+DEBUG_HITBOX = False
 
-# object untuk mengelola pagar
+# Inisialisasi object Sapi dengan 3 file
+player_cow = Sapi(
+    normal_path=walk_path,
+    low_path=walk_low_path,
+    high_path=walk_high_path,
+    x_pos=PLAYER_X,
+    target_size=SAPI_SIZE
+)
+
+# Manager Obstacle
 manager = ObstacleManager(
     screen_width=WIDTH,
     variants=PAGAR_VARIANTS,
@@ -84,16 +88,10 @@ manager = ObstacleManager(
 
 def camera_follow_on_bounce(dx: float):
     global offset_x
-    # Geser dunia (lantai + semua pagar) ke kanan saat player dibounce ke kiri
     offset_x += dx
     manager.shift_world(dx)
 
-# Set resolusi kamera agar lebih optimal
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-
-# Set fps background
-FRAME_INTERVAL_MS = 72
+FRAME_INTERVAL_MS = 128
 time_since_last_frame = 0
 background_surf = None
 
@@ -105,6 +103,7 @@ try:
             if e.type == pygame.QUIT or (e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE):
                 running = False
 
+        # --- AUDIO PITCH LOGIC ---
         freq = audio.get_pitch()
         if 66 <= freq < 500:
             ramping = False
@@ -116,7 +115,7 @@ try:
             ramping = False
             nunduk = False
 
-        # Background
+        # --- BACKGROUND ---
         time_since_last_frame += dt
         if time_since_last_frame >= FRAME_INTERVAL_MS:
             ret, frame = cam.read()
@@ -132,33 +131,39 @@ try:
         else:
             screen.fill(environment.BG)
 
+        # Draw Lantai
         offset_x += speed_x
         environment.draw_lantai(screen, offset_x)
         environment.draw_lantai_edges(screen, offset_x)
 
-        # Update obstacles
+        # --- UPDATE PLAYER (SAPI) ---
         floor_top_y = environment.get_floor_top_y()
-        player_rect.midbottom = (PLAYER_X, floor_top_y)
+        player_cow.set_floor_pos(floor_top_y)
+        player_cow.update(dt, nunduk, ramping)
 
+        # --- UPDATE OBSTACLES ---
         collided_first_any, collided_second_any, back_draw, front_draw, debug_boxes = manager.update_and_prepare_draw(
             dt=dt,
-            player_rect=player_rect,
+            player_rect=player_cow.rect,
             z_down=nunduk,
             x_down=ramping,
             camera_follow_cb=camera_follow_on_bounce,
-            debug_hitbox=DEBUG_HITBOX
+            debug_hitbox=DEBUG_HITBOX,
+            screen=screen,
         )
 
+        # Draw layer belakang pagar
         for img, r in back_draw:
             screen.blit(img, r)
 
-        if os.path.exists(sapi_path):
-            player_img = pygame.image.load(sapi_path).convert_alpha()
-            player_img = pygame.transform.smoothscale(player_img, (PLAYER_W, PLAYER_H))
-            screen.blit(player_img, player_rect.topleft)
-        else:
-            pygame.draw.rect(screen, (50, 120, 220), player_rect)
+        # --- DRAW PLAYER ---
+        player_cow.draw(screen)
 
+        # Debug Hitbox Sapi
+        if DEBUG_HITBOX:
+             pygame.draw.rect(screen, (0, 255, 0), player_cow.rect, 2)
+
+        # Draw layer depan pagar
         for img, r in front_draw:
             screen.blit(img, r)
 
