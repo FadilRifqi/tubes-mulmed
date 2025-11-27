@@ -1,13 +1,14 @@
 import pygame
 
 class Sapi(pygame.sprite.Sprite):
-    def __init__(self, normal_path, low_path, high_path, x_pos, target_size=(80, 60)):
+    def __init__(self, normal_path, low_path, high_path, x_pos, target_size=(320, 320)):
         super().__init__()
 
         self.target_w, self.target_h = target_size
-        self.frame_count = 6 # Sesuai permintaan: 6 frame per file
+        self.frame_count = 6 
+        self.animation_speed = 0.2 
 
-        # Load ketiga file animasi
+        # Load ketiga strip animasi
         self.animations = {
             'normal': self.load_strip(normal_path),
             'nunduk': self.load_strip(low_path),
@@ -16,18 +17,19 @@ class Sapi(pygame.sprite.Sprite):
 
         self.state = 'normal'
         self.frame_index = 0
-        self.animation_speed = 0.2 # Kecepatan animasi
-
-        # Set image awal
         self.image = self.animations[self.state][0]
 
-        # Setup Hitbox (Rect)
+        # Hitbox (Rect)
+        # Hitbox dibuat sangat kecil dan akan disesuaikan di update()
         self.rect = self.image.get_rect()
         self.rect.x = x_pos
 
-        # Simpan ukuran hitbox dasar untuk referensi perubahan bentuk
+        # Simpan ukuran visual dasar
         self.base_w = self.target_w
         self.base_h = self.target_h
+        
+        # Offset visual untuk mengatur gambar sapi di atas lantai
+        self.visual_offset_y = 170 
 
     def load_strip(self, path):
         """Memuat gambar strip horizontal dan memotongnya menjadi 6 frame."""
@@ -35,15 +37,12 @@ class Sapi(pygame.sprite.Sprite):
         try:
             sheet = pygame.image.load(path).convert_alpha()
             sheet_w = sheet.get_width()
-            sheet_h = sheet.get_height()
-
+            
             # Hitung lebar per frame (total lebar dibagi 6)
             frame_width = sheet_w // self.frame_count
-            frame_height = sheet_h
-
+            
             for i in range(self.frame_count):
-                # Ambil potongan rect horizontal
-                rect = pygame.Rect(i * frame_width, 0, frame_width, frame_height)
+                rect = pygame.Rect(i * frame_width, 0, frame_width, sheet.get_height())
                 frame_surf = sheet.subsurface(rect)
 
                 # Resize ke target size
@@ -51,17 +50,16 @@ class Sapi(pygame.sprite.Sprite):
                 frames.append(frame_surf)
 
         except (FileNotFoundError, pygame.error) as e:
-            print(f"WARNING: Gagal memuat {path}. Menggunakan kotak merah dummy.")
-            # Buat dummy frames (kotak merah) jika file belum ada
+            # Fallback (Kotak Merah)
             for _ in range(self.frame_count):
                 surf = pygame.Surface((self.target_w, self.target_h))
-                surf.fill((255, 0, 0)) # Merah
+                surf.fill((255, 0, 0)) 
                 frames.append(surf)
 
         return frames
 
-    def update(self, dt, is_nunduk, is_ramping):
-        # 1. Tentukan State
+    def update(self, dt: int, is_nunduk: bool, is_ramping: bool):
+        # 1. Tentukan State dan Reset Animasi
         previous_state = self.state
         if is_nunduk:
             self.state = 'nunduk'
@@ -70,11 +68,10 @@ class Sapi(pygame.sprite.Sprite):
         else:
             self.state = 'normal'
 
-        # Reset frame index jika state berubah agar animasi tidak loncat aneh
         if self.state != previous_state:
             self.frame_index = 0
 
-        # 2. Jalankan Animasi (Looping 0 sampai 5)
+        # 2. Jalankan Animasi
         self.frame_index += self.animation_speed
         if self.frame_index >= len(self.animations[self.state]):
             self.frame_index = 0
@@ -82,20 +79,19 @@ class Sapi(pygame.sprite.Sprite):
         self.image = self.animations[self.state][int(self.frame_index)]
 
         # 3. Update Hitbox (Rect) Secara Dinamis
-        # Kita simpan posisi tengah bawah agar perubahan ukuran tumbuh ke atas/samping
+        # Simpan posisi tengah bawah sebagai jangkar agar rect tumbuh ke atas/samping
         current_center_x = self.rect.centerx
         current_bottom = self.rect.bottom
 
+        # Hitbox dibuat relatif terhadap ukuran visual (disesuaikan dengan posisi 3D di lantai)
         if self.state == 'nunduk':
-            # Hitbox jadi pendek (misal 60% tinggi)
-            new_h = int(self.base_h * 0.6)
-            new_w = int(self.base_w * 0.2)
+            new_h = int(self.base_h * 0.3)
+            new_w = int(self.base_w * 0.25)
         elif self.state == 'ramping':
-            # Hitbox jadi kurus (misal 40% lebar)
-            new_h = int(self.base_h * 0.6)
-            new_w = int(self.base_w * 0.2)
+            new_h = int(self.base_h * 0.5)
+            new_w = int(self.base_w * 0.1)
         else: # Normal
-            new_h = int(self.base_h * 0.6)
+            new_h = int(self.base_h * 0.5)
             new_w = int(self.base_w * 0.2)
 
         # Terapkan ukuran baru
@@ -106,15 +102,15 @@ class Sapi(pygame.sprite.Sprite):
         self.rect.centerx = current_center_x
         self.rect.bottom = current_bottom
 
-    def draw(self, screen):
+
+    def draw(self, screen: pygame.Surface):
+        """Menggambar visual sapi (sprite) di layar."""
         # Gambar sprite visual di tengah rect hitbox
         draw_x = self.rect.centerx - (self.image.get_width() // 2)
-
-        visual_offset_y = 170
-
-        draw_y = (self.rect.bottom - self.image.get_height()) + visual_offset_y
+        draw_y = (self.rect.bottom - self.image.get_height()) + self.visual_offset_y
 
         screen.blit(self.image, (draw_x, draw_y))
 
-    def set_floor_pos(self, floor_y):
+    def set_floor_pos(self, floor_y: int):
+        """Menyetel posisi vertikal sapi berdasarkan lantai."""
         self.rect.bottom = floor_y

@@ -13,7 +13,7 @@ GREEN = (20, 120, 40)
 BLACK = (0, 0, 0)
 BROWN = (100, 60, 20)
 
-# Floor Corners 
+# Floor Corners (Koordinat statis untuk perspektif)
 floor_top_left = (100, 300)
 floor_top_right = (900, 300)
 floor_bottom_right = (900, 430)
@@ -25,6 +25,7 @@ bottom_br = (floor_bottom_right[0], floor_bottom_right[1] + depth)
 bottom_bl = (floor_bottom_left[0], floor_bottom_left[1] + depth)
 
 def get_floor_points(offset_x: float):
+    """Menghitung 8 titik lantai dengan offset untuk pergerakan horizontal."""
     ft_l = (floor_top_left[0] + offset_x, floor_top_left[1])
     ft_r = (floor_top_right[0], floor_top_right[1])
     fb_r = (floor_bottom_right[0], floor_bottom_right[1])
@@ -38,6 +39,7 @@ def get_floor_points(offset_x: float):
     return ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l
 
 def draw_lantai(screen: pygame.Surface, offset_x: float):
+    """Menggambar poligon lantai (pseudo-3D)."""
     ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l = get_floor_points(offset_x)
     pygame.draw.polygon(screen, GREEN, [ft_l, ft_r, fb_r, fb_l])
     dark_green = darker(GREEN, 40)
@@ -45,15 +47,57 @@ def draw_lantai(screen: pygame.Surface, offset_x: float):
     pygame.draw.polygon(screen, darker(GREEN, 60), [fb_r, ft_r, bt_r, bb_r])  # kanan
 
 def draw_lantai_edges(screen: pygame.Surface, offset_x: float):
+    """Menggambar garis tepi lantai."""
     ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l = get_floor_points(offset_x)
     pygame.draw.polygon(screen, BLACK, [ft_l, ft_r, fb_r, fb_l], 2)
     pygame.draw.polygon(screen, BLACK, [fb_l, fb_r, bb_r, bb_l], 2)
     pygame.draw.polygon(screen, BLACK, [fb_r, ft_r, bt_r, bb_r], 2)
 
 def get_floor_top_y():
+    """Mengembalikan koordinat Y tempat rintangan/sapi berdiri."""
     return floor_top_left[1] + 40
 
-def camera_follow_on_bounce(dx, offset_x, pagar_sprite_list):
-    offset_x += dx
-    for s in pagar_sprite_list:
-        s["x"] += dx
+def draw_health_bar(screen: pygame.Surface, current: int, max_health: int, heart_full: pygame.Surface, heart_empty: pygame.Surface):
+    """Menggambar nyawa (hanya hati penuh yang tersisa)."""
+    
+    if heart_full is None:
+        hp_text = pygame.font.SysFont("consolas", 28).render(f"HP: {current}/{max_health}", True, (255, 0, 0))
+        screen.blit(hp_text, (10, 10))
+        return
+    
+    x_start = 10
+    y_pos = 10
+    
+    # Gambar hati penuh sebanyak nyawa saat ini
+    for i in range(current):
+        screen.blit(heart_full, (x_start + i * heart_full.get_width(), y_pos))
+
+def draw_score(screen: pygame.Surface, font: pygame.font.Font, score: int):
+    """Menggambar skor di kanan atas."""
+    score_text = font.render(f"SCORE: {score}", True, (255, 255, 255))
+    screen.blit(score_text, (screen.get_width() - score_text.get_width() - 10, 10))
+
+def draw_menu_screen(screen: pygame.Surface, font_menu: pygame.font.Font):
+    """Menggambar layar menu awal."""
+    screen.fill(BG)
+    text = font_menu.render("SAPI GO!", True, BLACK)
+    screen.blit(text, (screen.get_width() // 2 - text.get_width() // 2, screen.get_height() // 3))
+
+    instr_text = pygame.font.SysFont("consolas", 24).render("Press SPACE to Start. (Nada Tinggi = Ramping, Nada Rendah = Nunduk)", True, BLACK)
+    screen.blit(instr_text, (screen.get_width() // 2 - instr_text.get_width() // 2, screen.get_height() // 3 + 100))
+
+def draw_game_over_screen(screen: pygame.Surface, font_menu: pygame.font.Font, font_score: pygame.font.Font, final_score: int):
+    """Menggambar layar Game Over."""
+    
+    overlay = pygame.Surface((screen.get_width(), screen.get_height()), pygame.SRCALPHA)
+    overlay.fill((0, 0, 0, 180))
+    screen.blit(overlay, (0, 0))
+
+    go_text = font_menu.render("GAME OVER", True, (255, 50, 50))
+    screen.blit(go_text, (screen.get_width() // 2 - go_text.get_width() // 2, screen.get_height() // 3))
+    
+    score_text = font_score.render(f"Final Score: {final_score}", True, (255, 255, 255))
+    screen.blit(score_text, (screen.get_width() // 2 - score_text.get_width() // 2, screen.get_height() // 3 + 100))
+    
+    restart_text = pygame.font.SysFont("consolas", 24).render("Press SPACE to Try Again", True, (200, 200, 200))
+    screen.blit(restart_text, (screen.get_width() // 2 - restart_text.get_width() // 2, screen.get_height() // 3 + 160))

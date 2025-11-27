@@ -1,9 +1,9 @@
 import numpy as np
-import librosa
+import librosa 
 import sounddevice as sd
 import threading
 import queue
-
+import sys
 
 class Audio:
     def __init__(self, samplerate=22050, blocksize=2048, hop_length=512, fmin=65, fmax=2093):
@@ -21,13 +21,16 @@ class Audio:
 
     def _audio_callback(self, indata, frames, time_info, status):
         if status:
-            print(status)
+            # print(status)
+            pass
         self._audio_queue.put(indata.copy())
 
     def _process_audio(self):
+        # Buffer digunakan untuk mengumpulkan data audio sebelum diolah menjadi frame
         buffer = np.zeros(0, dtype=np.float32)
         while self._running:
             try:
+                # Ambil data dari queue
                 data = self._audio_queue.get(timeout=0.1)
             except queue.Empty:
                 continue
@@ -35,18 +38,24 @@ class Audio:
             if data is None:
                 break
 
+            # Konversi ke mono (rata-rata antar channel) dan tambahkan ke buffer
             buffer = np.append(buffer, np.mean(data, axis=1))
+            
+            # Cek jika buffer sudah cukup untuk satu frame bloksize
             if len(buffer) >= self.blocksize:
                 frame = buffer[:self.blocksize]
+                # Geser buffer berdasarkan hop_length
                 buffer = buffer[self.hop_length:]
 
                 try:
+                    # Deteksi pitch menggunakan YIN
                     f0 = librosa.yin(
                         frame,
                         fmin=self.fmin,
                         fmax=self.fmax,
                         sr=self.samplerate,
                     )
+                    # Ambil nilai median pitch yang terdeteksi dalam frame
                     pitch = np.nanmedian(f0)
                     if not np.isnan(pitch):
                         self.pitch_value = float(pitch)
@@ -61,6 +70,7 @@ class Audio:
         self._thread = threading.Thread(target=self._process_audio, daemon=True)
         self._thread.start()
 
+        # Stream dimulai dengan ukuran blok hop_length
         self._stream = sd.InputStream(
             channels=1,
             samplerate=self.samplerate,
@@ -81,5 +91,4 @@ class Audio:
 
     def get_pitch(self):
         """Kembalikan nilai pitch saat ini"""
-        print("Pitch value:", self.pitch_value)
         return self.pitch_value
