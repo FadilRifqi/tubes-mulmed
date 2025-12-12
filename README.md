@@ -6,6 +6,8 @@
 <li>Muhammad Fadil Ataullah Rifqi - 122140205</li>
 <li>Jason Surya Padantya - 122140237</li>
 </ul>
+<img src="assets/Screenshot 2025-12-12 184744.png"/>
+<img src="assets/Screenshot 2025-12-12 184815.png"/>
 <h3> Deskripsi </h3>
 <p style="text-align: justify">Sapi Go adalah sebuah permainan dimana kamu bisa mengontrol karakter sapi untuk melewati rintangan dengan mengunakan suara. Pemain akan menggunakan pitch suaranya untuk mengontrol apakah sapi akan menunduk atau meramping. Game akan dibuat dalam 2d mnggunakan pygame.</p>
 <h3> Logbook </h3>
