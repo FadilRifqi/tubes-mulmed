@@ -176,7 +176,7 @@ try:
 
             # 2. Input Suara
             freq = audio.get_pitch()
-            # 66 <= f < 500 = Nunduk (Z-down)
+            # < 100 Nunduk (Z-down)
             # f >= 500 = Ramping (X-down)
             if freq <= 100:
                 ramping = False
