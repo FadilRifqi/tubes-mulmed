@@ -21,6 +21,14 @@ Mencoba mengintegrasikan deteksi pitch suara untuk menggantikan tombol x dan z s
 <p>
 Berhasil mengubah input menjadi suara, membuat arsitektur lebih modular seperti object Pagar, Audio
 </p>
+<h4>Minggu keempat</h4>
+<p>
+Membuat ui game seperti darah, game over, start
+</p>
+<h4>Minggu keenam</h4>
+<p>
+Membuat video demo dan laporan
+</p>
 
 <h3> Installation </h3>
 <ul>
