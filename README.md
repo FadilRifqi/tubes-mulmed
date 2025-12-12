@@ -48,7 +48,7 @@ source .venv/bin/activate (untuk macos dan linux)
 install dependencies
 
 ```python
-pip install requirements.txt
+pip install -r requirements.txt
 ```
 
 </li>
