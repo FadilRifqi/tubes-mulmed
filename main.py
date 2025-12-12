@@ -1,7 +1,6 @@
 import pygame
 import sys
 import os
-import numpy as np
 import cv2
 from audio import Audio
 
