@@ -13,7 +13,7 @@ GREEN = (20, 120, 40)
 BLACK = (0, 0, 0)
 BROWN = (100, 60, 20)
 
-# Floor Corners (Koordinat statis untuk perspektif)
+# Floor Corners 
 floor_top_left = (100, 300)
 floor_top_right = (900, 300)
 floor_bottom_right = (900, 430)
@@ -24,8 +24,9 @@ bottom_tr = (floor_top_right[0], floor_top_right[1] + depth)
 bottom_br = (floor_bottom_right[0], floor_bottom_right[1] + depth)
 bottom_bl = (floor_bottom_left[0], floor_bottom_left[1] + depth)
 
+# --- FUNGSI EXISTING (Lantai) ---
+
 def get_floor_points(offset_x: float):
-    """Menghitung 8 titik lantai dengan offset untuk pergerakan horizontal."""
     ft_l = (floor_top_left[0] + offset_x, floor_top_left[1])
     ft_r = (floor_top_right[0], floor_top_right[1])
     fb_r = (floor_bottom_right[0], floor_bottom_right[1])
@@ -39,32 +40,32 @@ def get_floor_points(offset_x: float):
     return ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l
 
 def draw_lantai(screen: pygame.Surface, offset_x: float):
-    """Menggambar poligon lantai (pseudo-3D)."""
     ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l = get_floor_points(offset_x)
     pygame.draw.polygon(screen, GREEN, [ft_l, ft_r, fb_r, fb_l])
     dark_green = darker(GREEN, 40)
-    pygame.draw.polygon(screen, dark_green, [fb_l, fb_r, bb_r, bb_l])  # depan
-    pygame.draw.polygon(screen, darker(GREEN, 60), [fb_r, ft_r, bt_r, bb_r])  # kanan
+    pygame.draw.polygon(screen, dark_green, [fb_l, fb_r, bb_r, bb_l])
+    pygame.draw.polygon(screen, darker(GREEN, 60), [fb_r, ft_r, bt_r, bb_r])
 
 def draw_lantai_edges(screen: pygame.Surface, offset_x: float):
-    """Menggambar garis tepi lantai."""
     ft_l, ft_r, fb_r, fb_l, bt_l, bt_r, bb_r, bb_l = get_floor_points(offset_x)
     pygame.draw.polygon(screen, BLACK, [ft_l, ft_r, fb_r, fb_l], 2)
     pygame.draw.polygon(screen, BLACK, [fb_l, fb_r, bb_r, bb_l], 2)
     pygame.draw.polygon(screen, BLACK, [fb_r, ft_r, bt_r, bb_r], 2)
 
 def get_floor_top_y():
-    """Mengembalikan koordinat Y tempat rintangan/sapi berdiri."""
     return floor_top_left[1] + 40
 
+# --- FUNGSI BARU UNTUK DRAWING UI DAN SCREEN STATES ---
+
 def draw_health_bar(screen: pygame.Surface, current: int, max_health: int, heart_full: pygame.Surface, heart_empty: pygame.Surface):
-    """Menggambar nyawa (hanya hati penuh yang tersisa)."""
+    """Menggambar bar nyawa (hati) di kiri atas layar. Hanya menggambar hati penuh."""
     
     if heart_full is None:
+        # Fallback teks jika aset hati tidak ada
         hp_text = pygame.font.SysFont("consolas", 28).render(f"HP: {current}/{max_health}", True, (255, 0, 0))
         screen.blit(hp_text, (10, 10))
         return
-    
+
     x_start = 10
     y_pos = 10
     
