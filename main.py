@@ -179,7 +179,7 @@ try:
             freq = audio.get_pitch()
             # 66 <= f < 500 = Nunduk (Z-down)
             # f >= 500 = Ramping (X-down)
-            if 66 <= freq < 500:
+            if freq <= 100:
                 ramping = False
                 nunduk = True
             elif freq >= 500:
@@ -188,7 +188,7 @@ try:
             else:
                 ramping = False
                 nunduk = False
-
+            print(f"Freq: {freq:.2f} Hz | Nunduk: {nunduk} | Ramping: {ramping}")
             # 3. Update Dunia dan Rintangan
             offset_x += speed_x
             
