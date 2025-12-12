@@ -105,7 +105,7 @@ try:
 
         # --- AUDIO PITCH LOGIC ---
         freq = audio.get_pitch()
-        if 66 <= freq < 500:
+        if freq <= 100:
             ramping = False
             nunduk = True
         elif freq >= 500:
